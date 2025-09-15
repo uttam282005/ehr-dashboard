@@ -1,9 +1,8 @@
 import type { ApiError } from "@/lib/types";
-import { isApiError } from "@/lib/utils";
+import { apiRequest, isApiError } from "@/lib/utils";
 
 export async function fetchWithCache<T>(
   key: string | null,
-  fetcher: (url: string) => Promise<T>,
   url: string
 ): Promise<T> {
   try {
@@ -13,7 +12,7 @@ export async function fetchWithCache<T>(
     //   if (cached) return JSON.parse(cached) as T;
     // }
 
-    const data = await fetcher(url);
+    const data = await apiRequest(url, "GET");
 
     // if (key) {
     //   await redis.set(key, JSON.stringify(data), "EX", ttl);

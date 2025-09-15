@@ -1,15 +1,17 @@
 "use server";
 
 import { fetchWithCache } from "@/actions/actions";
-import { fetcher, isApiError, postWrapper } from "@/lib/utils";
+import { apiRequest, isApiError } from "@/lib/utils";
 import { baseUrl, firmUrlPrefix } from "@/config";
-import { ApiError } from "@/lib/types"; 
+import { ApiError } from "@/lib/types";
 
-export async function fetchEntityByPage(pageNo: number) {
+type Entity = "Patient" | "Appointment" | "Slot";
+
+export async function fetchEntityByPage(entity: Entity, pageNo: number) {
   try {
-    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/Patient?page=${pageNo}`;
+    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}?page=${pageNo}`;
 
-    const response = await fetchWithCache("patient:list", fetcher, url);
+    const response = await fetchWithCache(null, url);
 
     return response;
   } catch (error: any) {
@@ -27,21 +29,23 @@ export async function fetchEntityByPage(pageNo: number) {
 
 // fetchEntity by search params
 export async function fetchEntity(
+  entity: Entity,
   searchParams?: Record<string, string>
 ) {
   try {
-    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/Patient/`;
+    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}/`;
 
     if (searchParams && Object.keys(searchParams).length > 0) {
       url += "?"
       for (const [key, value] of Object.entries(searchParams)) {
         if (value) {
-          url += `&${key}=${value}`;
+          url += `${key}=${value}&`;
         }
       }
     }
 
-    const response = await fetchWithCache("patient:list", fetcher, url);
+    console.log(url)
+    const response = await fetchWithCache("patient:list", url);
     return response;
   } catch (error: any) {
     if (isApiError(error)) {
@@ -58,15 +62,15 @@ export async function fetchEntity(
   }
 }
 
-export async function fetchEntityById(id: string) {
+export async function fetchEntityById(entity: Entity, id: string) {
   try {
 
-    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/Patient/${id}`;
+    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}/${id}`;
 
-    const response = await fetchWithCache(null, fetcher, url);
+    const response = await fetchWithCache(null, url);
 
     return response;
-  } catch(error: any) {
+  } catch (error: any) {
     if (isApiError(error)) {
       throw error;
     }
@@ -78,14 +82,14 @@ export async function fetchEntityById(id: string) {
       details: error,
     };
     throw fallbackError;
-  } 
+  }
 }
 
 //TODO: add payload type
-export async function createEntity(body: any) {
+export async function createEntity(entity: Entity, body: any) {
   try {
-    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/Patient`;
-    const response = await postWrapper(url, body);
+    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}`;
+    const response = await apiRequest(url, "POST", body);
     return response;
   } catch (error: any) {
     if (isApiError(error)) {
@@ -98,5 +102,38 @@ export async function createEntity(body: any) {
       details: error,
     };
     throw fallbackError;
+  }
+}
+
+export async function updateEntity(entity: Entity, id: string, body: any) {
+  try {
+    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}/${id}`;
+    const response = await apiRequest(url, "PUT", body);
+    return response;
+  } catch (error: any) {
+    if (isApiError(error)) {
+      throw error;
+    }
+    const fallbackError: ApiError = {
+      code: "SERVER_ACTION_ERROR",
+      message: "Internal server error",
+      status: 500,
+      details: error,
+    };
+    throw fallbackError;
+  }
+}
+
+export async function createAppointment(body: any) {
+  try {
+    const res = await fetchEntity("Slot", {
+      ...body
+    }) as any
+    if (res.status !== "busy") {
+      const res = createEntity("Appointment", body);
+      return res;
+    }
+  } catch (e: any) {
+
   }
 }

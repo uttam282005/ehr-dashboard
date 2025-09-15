@@ -18,7 +18,7 @@ export default async function PatientPage({
 }) {
   const { pageno } = await params;
   const pageNo = Number(pageno);
-  const data: FhirBundle = await fetchEntityByPage(pageNo);
+  const data: FhirBundle = await fetchEntityByPage("Patient", pageNo) as FhirBundle;
 
   return (
     <div className="space-y-4">

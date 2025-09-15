@@ -65,3 +65,50 @@ export interface ActorRef {
     display: string;
   };
 }
+
+export interface AppointmentPayload {
+  resourceType: "Appointment";
+  status: 
+    | "pending"
+    | "booked"
+    | "arrived"
+    | "fulfilled"
+    | "cancelled"
+    | "noshow"
+    | "checked-in";
+  appointmentType: {
+    coding: Array<{
+      system: string;
+      code: string;
+      display: string;
+    }>;
+    text: string;
+  };
+  reasonCode?: Array<{
+    coding: Array<{
+      system: string;
+      code: string;
+      display: string;
+    }>;
+    text: string;
+  }>;
+  description?: string;
+  supportingInformation?: Array<{
+    identifier: {
+      system: string;
+      value: string;
+    };
+    display: string;
+  }>;
+  start: string; // ISO datetime string
+  end: string; // ISO datetime string
+  minutesDuration: number;
+  created?: string; // ISO datetime string
+  comment?: string;
+  participant: Array<{
+    actor: {
+      reference: string;
+      display: string;
+    };
+  }>;
+}

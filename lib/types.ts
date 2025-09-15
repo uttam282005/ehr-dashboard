@@ -5,44 +5,59 @@ export interface ApiError {
   details?: any;     // optional raw error payload for logs
 }
 
-interface Coding {
-  system?: string;
-  code?: string;
-  display?: string;
-}
-// Reference type for linked resources (Practitioner, etc.)
-interface Reference {
-  reference: string; // e.g. "Practitioner/12345"
-  display?: string;
-}
-interface MaritalStatus {
-  text?: string;
-  coding?: Coding[]
-}
-// Identifier type
-interface Identifier {
-  system?: string;  // URL or namespace (e.g., HL7 MRN system)
-  value: string;    // Identifier value
-  type?: "PMS" | "MRN" | "SSN" | "Referral"; 
+export interface Patient {
+  resourceType: "Patient";
+  id: string;
+  meta: {
+    lastUpdated: string; // ISO date-time string
+  };
+  extension?: Extension[];
+  identifier?: Identifier[];
+  active?: boolean;
+  name?: HumanName[];
+  telecom?: ContactPoint[];
+  gender?: string;
+  birthDate?: string; // Date string YYYY-MM-DD
+  deceasedBoolean?: boolean;
+  address?: Address[];
+  maritalStatus?: CodeableConcept;
+  contact?: PatientContact[];
+  communication?: PatientCommunication[];
+  generalPractitioner?: GeneralPractitioner[];
 }
 
-// Human name
-interface HumanName {
+export interface Extension {
+  url: string;
+  extension?: ExtensionDetail[];
+}
+
+export interface ExtensionDetail {
+  url: string;
+  valueCoding?: Coding;
+  valueString?: string;
+}
+
+export interface Identifier {
+  system: string;
+  value: string;
+  type?: CodeableConcept;
+}
+
+export interface HumanName {
   family?: string;
   given?: string[];
 }
 
-// Telecom type (phone, email, etc.)
-interface ContactPoint {
-  system: "phone" | "email" | "fax" | "url" | "sms";
+export interface ContactPoint {
+  system: string;
   value: string;
-  use?: "home" | "work" | "mobile" | "temp" | "old";
-  rank?: number; // Preferred order
+  use?: string;
+  rank?: number;
 }
 
-// Address
-interface Address {
+export interface Address {
   use?: string;
+  type?: string;
   line?: string[];
   city?: string;
   state?: string;
@@ -50,67 +65,28 @@ interface Address {
   country?: string;
 }
 
-// Emergency contact
-interface Contact {
-  relationship?: string; // HL7 v2/0131
+export interface CodeableConcept {
+  coding?: Coding[];
+  text?: string;
+}
+
+export interface Coding {
+  system: string;
+  code: string;
+  display: string;
+}
+
+export interface PatientContact {
+  relationship?: CodeableConcept[];
   name?: HumanName;
   telecom?: ContactPoint[];
-  address?: Address;
 }
 
-// Communication
-interface Communication {
-  language: string; // ISO639-2 code
-  preferred?: boolean;
+export interface PatientCommunication {
+  language: CodeableConcept;
 }
 
-// Race & Ethnicity extensions
-interface Extension {
-  url: string;
-  value: string;
-}
-
-// General Practitioner + last seen extension
-interface GeneralPractitioner {
-  practitioner: Reference;
-  role: "REF" | "PPRF"; // Referrer | Primary Performer
-  dateLastSeen?: string; // ISO date
-}
-
-// -------------------------
-// Patient Type Definition
-// -------------------------
-export interface Patient {
-  id: string; // MMI-specific unique ID
-
-  identifier?: Identifier[];
-
-  active?: boolean;
-
-  name?: HumanName[];
-
-  telecom?: ContactPoint[];
-
-  gender?: "male" | "female" | "other" | "unknown";
-
-  birthDate?: string; // ISO Date
-
-  deceasedBoolean?: boolean;
-
-  address?: Address[];
-
-  maritalStatus?: string; // HL7 v2/0002 code
-
-  contact?: Contact[];
-
-  communication?: Communication[];
-
-  extension?: {
-    race?: Extension;
-    ethnicity?: Extension;
-  };
-
-  generalPractitioner?: GeneralPractitioner[];
-
-  referralSource?: Reference; // Practitioner or Referral ID
+export interface GeneralPractitioner {
+  identifier?: Identifier;
+  display?: string;
 }
