@@ -38,6 +38,9 @@ export async function fetchEntity(
     if (searchParams && Object.keys(searchParams).length > 0) {
       url += "?"
       for (const [key, value] of Object.entries(searchParams)) {
+        if (key === "date2") {
+          url += `date=${value}`; continue;
+        }
         if (value) {
           url += `${key}=${value}&`;
         }
