@@ -7,11 +7,12 @@ export const isApiError = (response: any) => {
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-export const apiRequest = async <T = any>(
+export const apiRequest = 
+async function request<T = any>(
   url: string,
   method: HttpMethod,
   body?: Record<string, any>
-): Promise<T> => {
+): Promise<T> {
   try {
     const res = await fetch(url, {
       method,
@@ -21,7 +22,7 @@ export const apiRequest = async <T = any>(
         "x-api-key": api_key,
       },
       cache: "no-store",
-      body: body ? JSON.stringify(body) : undefined,
+      body: method !== "GET" && body ? JSON.stringify(body) : undefined,
     });
 
     if (!res.ok) {
@@ -31,6 +32,19 @@ export const apiRequest = async <T = any>(
       } catch {
         errorBody = await res.text();
       }
+
+      if (errorBody?.resourceType === "OperationOutcome") {
+        const diagnostics = errorBody.issue
+          ?.map((i: any) => i.diagnostics || i.code)
+          .join(", ");
+        throw {
+          code: "API_ERROR",
+          message: diagnostics || `Failed to ${method} data`,
+          status: res.status,
+          details: errorBody,
+        } as ApiError;
+      }
+
       throw {
         code: "API_ERROR",
         message: `Failed to ${method} data`,
@@ -39,18 +53,42 @@ export const apiRequest = async <T = any>(
       } as ApiError;
     }
 
+    if (res.status === 204) return {} as T; // no content
     const data: T = await res.json();
     return data;
   } catch (err: any) {
     if (isApiError(err)) throw err;
+
     throw {
       code: "NETWORK_ERROR",
-      message: "Unable to connect to EHR API",
+      message:
+        err?.name === "AbortError"
+          ? "Request was aborted"
+          : "Unable to connect to EHR API",
       status: 0,
       details: err,
     } as ApiError;
   }
 };
+
+export function handleError(error: any) {
+    if (isApiError(error)) {
+      return {
+        success: false,
+        error
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        code: "SERVER_ACTION_ERROR",
+        message: "Internal server error",
+        status: 500,
+        details: error,
+      },
+    };
+}
 
 export async function fetchWithCache<T>(
   key: string | null,
@@ -85,4 +123,3 @@ export async function fetchWithCache<T>(
     throw error;
   }
 }
-

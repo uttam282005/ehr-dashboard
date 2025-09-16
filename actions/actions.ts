@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchWithCache } from "@/lib/utils";
+import { fetchWithCache, handleError } from "@/lib/utils";
 import { apiRequest, isApiError } from "@/lib/utils";
 import { baseUrl, firmUrlPrefix } from "@/config";
 import { ApiError } from "@/lib/types";
@@ -15,16 +15,7 @@ export async function fetchEntityByPage(entity: Entity, pageNo: number) {
 
     return response;
   } catch (error: any) {
-    if (isApiError(error)) {
-      throw error;
-    }
-    throw {
-      code: "SERVER_ACTION_ERROR",
-      message: "Failed to fetch patients",
-      status: 500,
-      details: error,
-    };
-  }
+    return handleError(error);
 }
 
 // fetchEntity by search params
@@ -52,17 +43,7 @@ export async function fetchEntity(
     const response = await fetchWithCache("patient:list", url);
     return response;
   } catch (error: any) {
-    if (isApiError(error)) {
-      throw error;
-    }
-
-    const fallbackError: ApiError = {
-      code: "SERVER_ACTION_ERROR",
-      message: "Internal server error",
-      status: 500,
-      details: error,
-    };
-    throw fallbackError;
+    return handleError(error);
   }
 }
 
@@ -75,37 +56,19 @@ export async function fetchEntityById(entity: Entity, id: string) {
 
     return response;
   } catch (error: any) {
-    if (isApiError(error)) {
-      throw error;
-    }
-
-    const fallbackError: ApiError = {
-      code: "SERVER_ACTION_ERROR",
-      message: "Internal server error",
-      status: 500,
-      details: error,
-    };
-    throw fallbackError;
+      return handleError(error);
   }
 }
 
 //TODO: add payload type
 export async function createEntity(entity: Entity, body: any) {
   try {
-    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}`;
+    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}`;
+    console.log(url)
     const response = await apiRequest(url, "POST", body);
     return response;
   } catch (error: any) {
-    if (isApiError(error)) {
-      throw error;
-    }
-    const fallbackError: ApiError = {
-      code: "SERVER_ACTION_ERROR",
-      message: "Internal server error",
-      status: 500,
-      details: error,
-    };
-    throw fallbackError;
+      return handleError(error);
   }
 }
 
@@ -115,29 +78,57 @@ export async function updateEntity(entity: Entity, id: string, body: any) {
     const response = await apiRequest(url, "PUT", body);
     return response;
   } catch (error: any) {
-    if (isApiError(error)) {
-      throw error;
-    }
-    const fallbackError: ApiError = {
-      code: "SERVER_ACTION_ERROR",
-      message: "Internal server error",
-      status: 500,
-      details: error,
-    };
-    throw fallbackError;
+      return handleError(error);
   }
 }
+
 
 export async function createAppointment(body: any) {
   try {
-    const res = await fetchEntity("Slot", {
-      ...body
-    }) as any
-    if (res.status !== "busy") {
-      const res = createEntity("Appointment", body);
-      return res;
-    }
-  } catch (e: any) {
+    const { appointmentType, start } = body;
 
+    const formatDate = (d: Date) =>
+      new Date(d).toISOString().replace(/\.\d{3}Z$/, "Z");
+
+    const startDate = formatDate(start);
+
+    const slots = (await fetchEntity("Slot", {
+      "appointment-type": appointmentType.coding[0].code,
+      date: `eq${startDate}`,
+    })) as any;
+
+    if (slots.entry && slots.entry.length > 0) {
+      const data = await createEntity("Appointment", body);
+      return {
+        success: true,
+        data,
+      };
+    } else {
+      return {
+        success: false,
+        error: {
+          code: "NO_SLOT_AVAILABLE",
+          message: "No available slots",
+        },
+      };
+    }
+  } catch (error: any) {
+    if (isApiError(error)) {
+      return {
+        success: false,
+        error
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        code: "SERVER_ACTION_ERROR",
+        message: "Internal server error",
+        status: 500,
+        details: error,
+      },
+    };
   }
 }
+
