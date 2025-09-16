@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { Patient } from "@/lib/types";
-import { fetchEntity } from "@/actions/patient";
+import { fetchEntity } from "@/actions/actions";
 
 interface PatientEntry {
   fullUrl: string;
@@ -240,7 +240,7 @@ export default function PatientsPage() {
             <div
               key={resource.id}
               className="p-4 border rounded cursor-pointer hover:bg-gray-100"
-              onClick={() => router.push(`/patients/${resource.id}`)}
+              onClick={() => router.push(`/patient/${resource.id}`)}
               role="button"
               tabIndex={0}
               onKeyPress={(e) => {
@@ -272,7 +272,7 @@ export default function PatientsPage() {
 
       {!loading && nextPage && (
         <button
-          onClick={() => router.push(`/patients/page/${nextPage}`)}
+          onClick={() => router.push(`/patient/page/${nextPage}`)}
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
           Next Page

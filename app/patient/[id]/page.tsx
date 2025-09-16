@@ -1,8 +1,9 @@
 import type { Patient } from "@/lib/types";
-import { fetchEntityById } from "@/actions/patient";
+import { fetchEntityById } from "@/actions/actions";
 
 export default async function PatientDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
+  console.log(id);
   const patient: Patient | null = await fetchEntityById("Patient", id) as Patient | null;
   if (!patient) return <p>No patient found.</p>;
 

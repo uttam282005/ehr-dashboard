@@ -1,4 +1,4 @@
-import { fetchEntityByPage } from "@/actions/patient";
+import { fetchEntityByPage } from "@/actions/actions";
 import type { Patient } from "@/lib/types";
 
 interface PatientEntry {

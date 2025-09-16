@@ -52,10 +52,10 @@ export interface Identifier {
 
 // Participant
 export interface AppointmentParticipant {
-  start?: string; // ISO date string
-  minutesDuration?: number;
-  created?: string; // ISO date string
-  participant: ActorRef[];
+  actor: {
+    reference: string;   // e.g., "Patient/89145"
+    display: string;     // e.g., "https://.../Patient/89145"
+  };
 }
 
 // Actor Reference

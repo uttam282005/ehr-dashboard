@@ -2,14 +2,13 @@
 
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { fetchEntity } from "@/actions/patient";
+import { fetchEntity } from "@/actions/actions";
 import { Appointment } from "@/lib/types/appointment";
 
 interface AppointmentEntry {
   fullUrl: string;
   resource: Appointment;
 }
-
 interface FhirBundle {
   entry: AppointmentEntry[];
   link?: { relation: string; url: string }[];
@@ -18,46 +17,68 @@ interface FhirBundle {
 export default function AppointmentsPage() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<AppointmentEntry[]>([]);
-  const [nextPage, setNextPage] = useState<number | null>(null);
+  const [nextPage, setNextPage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Search parameters state relevant to appointments
+  // Search parameters for appointments
   const [searchParams, setSearchParams] = useState({
-    status: "",          // e.g. booked, cancelled
-    appointmentType: "", // text or coding code
-    date: "",            // Single date field (mapped to ge/le internally)
-    date2:"",
-    participant: "",     // reference or display string
+    status: "",
+    "appointment-type": "",
+    date: "",
+    patient: "",
+    practitioner: "",
   });
 
   const loadAppointments = async (params: Record<string, string> = {}) => {
     try {
       setLoading(true);
       setError(null);
-
-      // Build correct FHIR query params
       const queryParams: Record<string, string> = {};
 
       Object.entries(params).forEach(([key, value]) => {
-        if (key === "date") {
-          // Convert selected date → full day range
+        if (key === "date" && value) {
           const day = new Date(value);
           const startOfDay = new Date(day.setHours(0, 0, 0, 0)).toISOString();
           const endOfDay = new Date(day.setHours(23, 59, 59, 999)).toISOString();
-
           queryParams["date"] = `ge${startOfDay}`;
-          queryParams["date2"] = `le${endOfDay}`;
+          queryParams["date"] = `le${endOfDay}`; // This overwrites previous date param; fix next
+        } else if (key === "patient" && value.trim() !== "") {
+          queryParams["patient"] = `Patient/${value.trim()}`;
         } else {
-          queryParams[key] = value;
+          if (value.trim() !== "") {
+            queryParams[key] = value.trim();
+          }
         }
       });
 
-      const data: FhirBundle = (await fetchEntity("Appointment", queryParams)) as FhirBundle;
-      setAppointments(data.entry || []);
+      // Fix date param: FHIR expects multiple 'date' keys for range,
+      // but JS object keys can't be duplicated, so build URL manually:
 
+      const urlSearchParams = new URLSearchParams();
+
+      Object.entries(queryParams).forEach(([k, v]) => {
+        urlSearchParams.append(k, v);
+      });
+
+      // Special treatment for date range: remove existing dates and append two separately
+      if (params.date) {
+        const day = new Date(params.date);
+        const startOfDay = new Date(day.setHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(day.setHours(23, 59, 59, 999)).toISOString();
+
+        urlSearchParams.delete("date");
+
+        urlSearchParams.append("date", `ge${startOfDay}`);
+        urlSearchParams.append("date", `le${endOfDay}`);
+      }
+
+      const data: FhirBundle = (await fetchEntity("Appointment", Object.fromEntries(urlSearchParams.entries()))) as FhirBundle;
+      console.log(data.entry)
+
+      setAppointments(data.entry || []);
       const nextLink = data.link?.find((l) => l.relation === "next");
-      setNextPage(nextLink ? Number(new URL(nextLink.url).searchParams.get("page")) : null);
+      setNextPage(nextLink ? new URL(nextLink.url).searchParams.get("page") : null);
     } catch (err) {
       console.error("Error fetching appointments:", err);
       setError("Failed to load appointments");
@@ -66,12 +87,10 @@ export default function AppointmentsPage() {
     }
   };
 
-  // Initial load
   useEffect(() => {
     loadAppointments();
   }, []);
 
-  // Handle search input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setSearchParams({
       ...searchParams,
@@ -79,7 +98,6 @@ export default function AppointmentsPage() {
     });
   };
 
-  // Handle search submit
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     const filteredParams: Record<string, string> = {};
@@ -119,12 +137,12 @@ export default function AppointmentsPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="appointmentType" className="block font-medium">Appointment Type</label>
+            <label htmlFor="appointment-type" className="block font-medium">Appointment Type</label>
             <input
-              id="appointmentType"
-              name="appointmentType"
+              id="appointment-type"
+              name="appointment-type"
               type="text"
-              value={searchParams.appointmentType}
+              value={searchParams["appointment-type"]}
               onChange={handleChange}
               className="w-full border rounded p-1"
               placeholder="Type or code"
@@ -142,15 +160,26 @@ export default function AppointmentsPage() {
             />
           </div>
           <div>
-            <label htmlFor="participant" className="block font-medium">Participant</label>
+            <label htmlFor="patient" className="block font-medium">Patient ID</label>
             <input
-              id="participant"
-              name="participant"
-              type="text"
-              value={searchParams.participant}
+              id="patient"
+              name="patient"
+              value={searchParams.patient}
               onChange={handleChange}
               className="w-full border rounded p-1"
-              placeholder="Reference or name"
+              placeholder="Patient resource ID"
+            />
+          </div>
+          <div>
+            <label htmlFor="practitioner" className="block font-medium">Practitioner</label>
+            <input
+              id="practitioner"
+              name="practitioner"
+              type="text"
+              value={searchParams.practitioner}
+              onChange={handleChange}
+              className="w-full border rounded p-1"
+              placeholder="Id"
             />
           </div>
         </div>
@@ -162,23 +191,31 @@ export default function AppointmentsPage() {
         </button>
       </form>
 
-      {/* Appointment List */}
+      {/* Appointments List */}
       <div className="space-y-4">
         {appointments.map((entry) => {
           const { resource } = entry;
-          const appointmentTypeText = resource.appointmentType?.text || "Unknown Type";
+          // Extract appointment type from the FHIR structure
+          let appointmentTypeText = "Unknown Type";
+          if (resource.appointmentType?.coding?.length > 0) {
+            appointmentTypeText = resource.appointmentType.coding[0].display
+              || resource.appointmentType.coding[0].code
+              || "Unknown Type";
+          } else if (resource.appointmentType?.text) {
+            // Fallback to plain text if available
+            appointmentTypeText = resource.appointmentType.text;
+          }
           const reasons = resource.reasonCode?.map(rc => rc.text).join(", ") || "No reason specified";
-
           return (
             <div
               key={resource.id}
               className="p-4 border rounded cursor-pointer hover:bg-gray-100"
-              onClick={() => router.push(`/appointments/${resource.id}`)}
+              onClick={() => router.push(`/appointment/${resource.id}`)}
               role="button"
               tabIndex={0}
               onKeyPress={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  router.push(`/appointments/${resource.id}`);
+                  router.push(`/appointment/${resource.id}`);
                 }
               }}
             >
@@ -199,7 +236,7 @@ export default function AppointmentsPage() {
 
       {!loading && nextPage && (
         <button
-          onClick={() => router.push(`/appointments/page/${nextPage}`)}
+          onClick={() => router.push(`/appointment/page/${nextPage}`)}
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
           Next Page
