@@ -163,5 +163,3 @@ interface ApiError {
 - Patient data follows FHIR v4 standards ensuring compatibility with existing EHR systems.
 
 ***
-
-This patient documentation can be expanded with detail on specific fields, example errors, and sample Postman collections for easy testing upon request.

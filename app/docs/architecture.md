@@ -122,18 +122,3 @@ This document outlines the architecture of the Healthcare API Integration System
 - Develop comprehensive automated test suite.
 
 ***
-
-This architecture provides a robust foundation to securely integrate and expose healthcare data via standardized APIs while meeting domain-specific requirements around security, compliance, and scalability.
-
-If needed, diagrams such as sequence diagrams, component diagrams, and infrastructure topology can be added for enhanced clarity.
-
-[1](https://www.postman.com/templates/collections/healthcare-api/)
-[2](https://cloud.google.com/healthcare-api/docs/api-structure)
-[3](https://cloudairy.com/template/azure-health-data-services-architecture/)
-[4](https://punchthrough.com/how-to-architect-a-robust-medical-web-based-api-or-app/)
-[5](https://docs.enterprisehealth.com/resources/system-specifications/application-programming-interface-api/)
-[6](https://cloud.google.com/healthcare-api/docs/samples)
-[7](https://www.catchpoint.com/api-monitoring-tools/api-architecture)
-[8](https://www.altexsoft.com/blog/api-documentation/)
-[9](https://docs.aws.amazon.com/wellarchitected/latest/healthcare-industry-lens/healthcare-analytics-reference-architecture.html)
-[10](https://www.docuwriter.ai/posts/software-architecture-documentation-template)

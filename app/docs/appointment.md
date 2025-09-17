@@ -201,5 +201,3 @@ interface ApiError {
 - Appointment data adheres to FHIR v4 standards ensuring compatibility with existing EHR systems.
 
 ***
-
-This provides consistent, comprehensive documentation for your Appointment API endpoints following the style of your Patient API documentation.

@@ -43,5 +43,3 @@
     - Extensions such as ethnicity, race, or social determinants of health are incompletely documented or unsupported.
 
 ***
-
-This list highlights key handling scenarios to consider during development and clearly communicates current technical boundaries of your API for stakeholders and users.

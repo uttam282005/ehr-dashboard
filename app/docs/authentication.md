@@ -62,7 +62,4 @@ This endpoint authenticates clients by exchanging user credentials for access an
 
 - Returns JSON error message with HTTP status on failure.
 - Logs server errors for diagnostics.
-
 ***
-
-This documentation provides clear usage instructions for your authentication endpoint inline with best API documentation practices.
