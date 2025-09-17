@@ -1,9 +1,15 @@
-import { accessToken, api_key } from "@/config";
+import { getRedisClient } from "./redis";
 import type { ApiError } from "./types";
 
 export const isApiError = (response: any) => {
   return "code" in response;
 }
+
+type UserCreds = {
+  apiKey?: string;
+  accessToken?: string;
+  refreshToken?: string;
+};
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -13,12 +19,23 @@ export const apiRequest = async <T = any>(
   body?: Record<string, any>
 ): Promise<T> => {
   try {
+    const redis = await getRedisClient();
+    const creds = await redis.hGetAll(`ehr`) as UserCreds;
+
+    if (!creds || !creds.apiKey || !creds.accessToken) {
+      throw {
+        code: "NOT_AUTHORIZED",
+        message: "Api key not provided" ,
+        status: 401,
+      } as ApiError
+    }
+
     const res = await fetch(url, {
       method,
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${creds.accessToken}`,
         "Content-Type": "application/json",
-        "x-api-key": api_key,
+        "x-api-key": creds.apiKey,
       },
       cache: "no-store",
       body: body ? JSON.stringify(body) : undefined,
@@ -33,7 +50,7 @@ export const apiRequest = async <T = any>(
       }
       throw {
         code: "API_ERROR",
-        message: `Failed to ${method} data`,
+        message: errorBody.issue[0].diagnostics,
         status: res.status,
         details: errorBody,
       } as ApiError;
@@ -88,7 +105,7 @@ export async function fetchWithCache<T>(
 }
 
 export function handleError(error: any) {
-  const err  =
+  const err =
     isApiError(error)
       ? error
       : {

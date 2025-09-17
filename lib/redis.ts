@@ -1,10 +1,26 @@
-import { createClient } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 
-const client = createClient({
+let client: RedisClientType | null = null;
 
-});
+export async function getRedisClient(): Promise<RedisClientType> {
+  if (client && client.isOpen) {
+    // Return existing connected client
+    return client;
+  }
 
-client.on('error', err => console.log('Redis Client Error', err));
+  // Create new client if none exists
+  client = createClient({
+    username: 'default',
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+      host: process.env.REDIS_URL,
+      port: 18151,
+    },
+  });
 
-await client.connect();
+  client.on('error', (err) => console.error('Redis Client Error', err));
+
+  await client.connect();
+  return client;
+}
 

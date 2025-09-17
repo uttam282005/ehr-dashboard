@@ -1,14 +1,15 @@
 "use server";
 
 import { fetchWithCache, handleError } from "@/lib/helpers";
-import { apiRequest, formatDate } from "@/lib/helpers";
+import { apiRequest  } from "@/lib/helpers";
 import { baseUrl, firmUrlPrefix } from "@/config";
 
 type Entity = "Patient" | "Appointment" | "Slot";
 
 export async function fetchEntityByPage(entity: Entity, pageNo: number) {
   try {
-    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}?page=${pageNo}`;
+    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}?page=${String(pageNo)}`;
+    console.log(url);
 
     const response = await fetchWithCache(null, url);
 
@@ -85,7 +86,6 @@ export async function fetchEntityById(entity: Entity, id: string) {
 export async function createEntity(entity: Entity, body: any) {
   try {
     let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/${entity}`;
-    console.log(url)
     const response = await apiRequest(url, "POST", body);
     return {
       success: true,
@@ -118,31 +118,12 @@ export async function updateEntity(entity: Entity, id: string, body: any) {
 
 export async function createAppointment(body: any) {
   try {
-    const { appointmentType, start } = body;
-
-
-    const startDate = formatDate(start);
-
-    const slots = (await fetchEntity("Slot", {
-      "appointment-type": appointmentType.coding[0].code,
-      date: `eq${startDate}`,
-    })) as any;
-
-    if (slots.entry && slots.entry.length > 0) {
-      const data = await createEntity("Appointment", body);
-      return {
-        success: true,
-        data,
-      };
-    } else {
-      return {
-        success: false,
-        error: {
-          code: "NO_SLOT_AVAILABLE",
-          message: "No available slots",
-        },
-      };
-    }
+    let url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/Appointment`;
+    const response = await apiRequest(url, "POST", body);
+    return {
+      success: true,
+      data: response,
+    };
   } catch (error: any) {
     return {
       success: false,

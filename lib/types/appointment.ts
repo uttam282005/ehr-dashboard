@@ -16,6 +16,12 @@ export interface Appointment {
   participant: AppointmentParticipant[];
 }
 
+export const appointmentTypes = [
+  { code: "1508", display: "Surgery" },
+  { code: "1509", display: "New Patient" },
+  { code: "1510", display: "Follow-up" },
+];
+
 // Meta information
 export interface AppointmentMeta {
   lastUpdated: string; // ISO date string

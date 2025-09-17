@@ -11,11 +11,17 @@ interface FhirBundle {
 export default async function AppointmentsPage({
   params,
 }: {
-  params: { pageno: string };
+  params: { pagenum: string };
 }) {
-  const { pageno } = params;
-  const pageNo = Number(pageno);
-  const data: FhirBundle = await fetchEntityByPage("Appointment", pageNo) as FhirBundle;
+  const { pagenum } = await params;
+  const pageNo = Number(pagenum);
+  console.log(pageNo)
+  const res = await fetchEntityByPage("Appointment", pageNo);
+  if (!res.success) {
+    throw res.error;
+  }
+  const data = res.data as FhirBundle;
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Appointments - Page {pageNo}</h1>
@@ -34,14 +40,6 @@ export default async function AppointmentsPage({
           </p>
           <p>
             <strong>End:</strong> {entry.resource.end}
-          </p>
-          <p>
-            <strong>Participants:</strong>{" "}
-            {entry.resource.participant?.map((part, ix) =>
-              part.participant
-                .map((actor, jx) => actor.actor.display)
-                .join(", ")
-            ).join("; ") || "None"}
           </p>
         </div>
       ))}
