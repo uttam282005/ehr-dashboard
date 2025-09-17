@@ -135,14 +135,14 @@ export default async function AppointmentDetailPage({ params }: { params: { id: 
                 >
                   <h3 className="text-md font-semibold text-gray-800">{entity}</h3>
                   <p className="text-sm text-gray-600">ID: {entityId}</p>
-                  <a
+                  {entity.toLowerCase() === "patient" && <a
                     href={`/${entity.toLowerCase()}/${entityId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 underline mt-1 block"
                   >
                     View Resource
-                  </a>
+                  </a>}
                 </div>
               );
             })}

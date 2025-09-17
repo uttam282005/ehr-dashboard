@@ -4,11 +4,9 @@ let client: RedisClientType | null = null;
 
 export async function getRedisClient(): Promise<RedisClientType> {
   if (client && client.isOpen) {
-    // Return existing connected client
     return client;
   }
 
-  // Create new client if none exists
   client = createClient({
     username: 'default',
     password: process.env.REDIS_PASSWORD,
@@ -18,7 +16,7 @@ export async function getRedisClient(): Promise<RedisClientType> {
     },
   });
 
-  client.on('error', (err) => console.error('Redis Client Error', err));
+  client.on('error', (err) => { throw err });
 
   await client.connect();
   return client;

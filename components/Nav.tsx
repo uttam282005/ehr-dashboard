@@ -5,7 +5,7 @@ import Link from "next/link";
 export function NavBar() {
   return (
     <nav className="bg-blue-600 text-white p-4 flex items-center justify-between">
-      <h1 className="text-2xl font-bold">EHR Dashboard</h1>
+      <Link href="/" className="text-2xl font-bold">EHR Dashboard</Link>
       <ul className="flex space-x-6">
         <li>
           <Link href="/home" className="hover:underline">

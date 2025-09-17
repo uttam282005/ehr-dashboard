@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Healthcare API Integration
+
+## Project Overview
+
+This project implements a secure, scalable Healthcare API Integration system using Next.js, Redis, and Modernizing Medicine’s proprietary and FHIR APIs. It supports core operations including patient management, appointment scheduling, and authentication with OAuth 2.0 token management. The goal is to provide standardized, FHIR-compliant RESTful APIs for healthcare data interaction.
+
+***
+
+## Table of Contents
+
+- [Features](#features)  
+- [Getting Started](#getting-started)  
+- [API Documentation](#api-documentation)  
+- [Architecture](#architecture)  
+- [Limitations & Edge Cases](#limitations--edge-cases)  
+- [Contributing](#contributing)  
+- [License](#license)  
+
+***
+
+## Features
+
+- OAuth 2.0 based authentication and token management with Redis storage  
+- Patient CRUD and search operations  
+- Appointment CRUD and search operations  
+- FHIR v4 compatible resource representation  
+- Modular, environment-configurable Next.js backend  
+- Postman collection for API testing and documentation  
+
+***
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js >14.x  
+- Redis server or Redis cloud instance  
+- API credentials for Modernizing Medicine sandbox or production  
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:  
+   `git clone <repo-url>`  
+2. Install dependencies:  
+   `npm install`  
+3. Configure environment variables for:  
+   - Base API URL  
+   - Firm URL prefix  
+   - Redis connection details  
+   - API keys and secrets  
+4. Run the development server:  
+   `npm run dev`  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+***
 
-## Learn More
+## API Documentation
 
-To learn more about Next.js, take a look at the following resources:
+Detailed docs for:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Patient API: CRUD and search  
+- Appointment API: CRUD and search  
+- Authentication API: Token management with Redis caching  
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Refer to `/docs` or the included Postman collection for full endpoint specs and example requests.
 
-## Deploy on Vercel
+***
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The backend uses Next.js serverless functions for endpoints, Redis for caching tokens and session data, and integrates with Modernizing Medicine's external healthcare APIs using OAuth 2.0. The system is designed for scalability, security, and compliance with healthcare data standards.
+
+***
+
+## Limitations & Edge Cases
+
+- Location IDs are not mapped to human-readable location names yet  
+- Limited support for practitioner, referral, and additional healthcare resources  
+- Basic error handling and no webhook support currently  
+- Pagination is basic without complex filtering capabilities  
+- No audit logging or role-based authorization implemented  
+
+***
+
+## Contributing
+
+Contributions are welcome. Please fork the repo and submit pull requests with clear descriptions. Report issues or feature requests via GitHub Issues.
+
+***
+
+## License
+
+[MIT License](LICENSE)
+
+***
+
+This README template covers key project information to aid developers and users working with your Healthcare API Integration project.
+
+[1](https://github.com/microsoft/healthcare-apis-samples)
+[2](https://github.com/othneildrew/Best-README-Template)
+[3](https://docs.readme.com/main/docs/building-apis-from-scratch-with-the-api-designer)
+[4](https://www.dartai.com/templates/project-readme)
+[5](https://embeddedartistry.com/blog/2017/11/30/embedded-artistry-readme-template/)
+[6](https://www.drupal.org/docs/develop/managing-a-drupalorg-theme-module-or-distribution-project/documenting-your-project/readmemd-template)
+[7](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/resourcemanager.healthcareapis-readme?view=azure-dotnet)
+[8](https://datamanagement.hms.harvard.edu/collect-analyze/documentation-metadata/readme-files)
+[9](https://docs.watermelon.ai/docs/readme-template-retrieving-information)
