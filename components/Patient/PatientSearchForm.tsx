@@ -25,7 +25,7 @@ export interface SearchParams {
   family: string
   birthdate: string
   gender: string
-  identifier: string
+  identifier: { type?: string, value?: string }
   phone: string
   email: string
   active: string
@@ -33,7 +33,7 @@ export interface SearchParams {
 
 interface PatientSearchFormProps {
   searchParams: SearchParams
-  onParamsChange: (params: SearchParams) => void
+  onParamsChange: any
   onSearch: (e: FormEvent) => void
   onClear: () => void
   isLoading: boolean
@@ -60,7 +60,6 @@ export default function PatientSearchForm({
 
   const handleChange = (field: keyof SearchParams, value: string) => {
     setLocalParams((prev) => ({ ...prev, [field]: value }))
-    // Optional: debounced sync to parent for "live search"
     debouncedParamsChange({ ...localParams, [field]: value })
   }
 
@@ -86,7 +85,7 @@ export default function PatientSearchForm({
       family: "",
       birthdate: "",
       gender: "any",
-      identifier: "",
+      identifier: {type: "", value: ""},
       phone: "",
       email: "",
       active: "any",
@@ -189,13 +188,27 @@ export default function PatientSearchForm({
 
             {/* Identifier */}
             <div className="space-y-2">
-              <Label htmlFor="identifier">Identifier</Label>
+              <Label htmlFor="identifierType">Identifier Type</Label>
+              <select
+                id="identifierType"
+                className="w-full border rounded p-2"
+                value={localParams.identifier.type}
+                onChange={(e) => handleChange("identifier", { type: e.target.value, value: localParams.identifier.value }) }
+                disabled={isLoading}
+              >
+                <option value="">Select Identifier</option>
+                <option value="MRN">MRN</option>
+                <option value="PMS">PMS</option>
+                <option value="SSN">SSN</option>
+              </select>
+
+              <Label htmlFor="identifierValue">Identifier Value</Label>
               <Input
-                id="identifier"
+                id="identifierValue"
                 type="text"
-                value={localParams.identifier}
-                onChange={(e) => handleChange("identifier", e.target.value)}
-                placeholder="MRN, SSN, etc."
+                value={localParams.identifier.value}
+                onChange={(e) => handleChange("identifier", { type: localParams.identifier.type, value: e.target.value })}
+                placeholder="Enter identifier value"
                 disabled={isLoading}
               />
             </div>

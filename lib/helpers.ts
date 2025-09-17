@@ -42,6 +42,7 @@ export const apiRequest = async <T = any>(
     const data: T = await res.json();
     return data;
   } catch (err: any) {
+    console.error(err.details);
     if (isApiError(err)) throw err;
     throw {
       code: "NETWORK_ERROR",

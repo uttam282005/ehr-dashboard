@@ -1,94 +1,98 @@
-import type { Patient } from "@/lib/types";
+import { ArrowLeft, Calendar, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ApiError, Patient } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 import { fetchEntityById } from "@/actions/actions";
 
+// Import modular components
+import PatientHeader from "@/components/Patient/PatientHeader";
+import PatientIdentifiers from "@/components/Patient/PatientIdentifiers";
+import ContactInformation from "@/components/Patient/ContactInformation";
+import AddressInformation from "@/components/Patient/AddressInfomation";
+import EmergencyContacts from "@/components/Patient/EmergencyContacts";
+import GeneralPractitioners from "@/components/Patient/GeneralPractitioners";
+import DemographicDetails from "@/components/Patient/DemographicDetails";
+import Error_ from "@/components/Error_"
+
 export default async function PatientDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  console.log(id);
-  const res = await fetchEntityById("Patient", id);
-  if (!res.success) throw res.error;
+  try {
+    const { id } = await params;
+    const res = await fetchEntityById("Patient", id);
+    if (!res.success) throw res.error as ApiError;
+    const patient: Patient = res.data as Patient;
+    if (!patient) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="p-8">
+            <CardContent className="text-center">
+              <p className="text-gray-600">Patient not found.</p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
-  const patient: Patient = res.data as Patient;
-  if (!patient) return <p>No patient found.</p>;
-
-  const raceExtension = patient.extension?.find(ext => ext.url === "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race");
-  const ethnicityExtension = patient.extension?.find(ext => ext.url === "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity");
-
-  const raceText = raceExtension?.extension?.find(e => e.url === "text")?.valueString;
-  const ethnicityText = ethnicityExtension?.extension?.find(e => e.url === "text")?.valueString;
-
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Patient {patient.id}</h1>
-
-      <div className="space-y-2">
-        <p><strong>Name:</strong> {patient.name?.[0]?.given?.join(" ")} {patient.name?.[0]?.family}</p>
-        <p><strong>Gender:</strong> {patient.gender}</p>
-        <p><strong>Birth Date:</strong> {patient.birthDate}</p>
-        <p><strong>Active:</strong> {patient.active ? "Yes" : "No"}</p>
-        <p>
-          <strong>Marital Status:</strong> {patient.maritalStatus?.text || "Unknown"}
-        </p>
-        {raceText && <p><strong>Race:</strong> {raceText}</p>}
-        {ethnicityText && <p><strong>Ethnicity:</strong> {ethnicityText}</p>}
-      </div>
-
-      <div>
-        <h2 className="font-semibold">Identifiers</h2>
-        <ul className="list-disc list-inside">
-          {patient.identifier?.map((id, idx) => (
-            <li key={idx}>
-              {id.value} ({id.system})
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h2 className="font-semibold">Contact</h2>
-        <ul className="list-disc list-inside">
-          {patient.telecom?.map((t, idx) => (
-            <li key={idx}>
-              {t.system}: {t.value} {t.rank === 1 && "(preferred)"}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h2 className="font-semibold">Address</h2>
-        {patient.address?.map((addr, idx) => (
-          <p key={idx}>
-            {addr.line?.join(", ")}, {addr.city}, {addr.state} {addr.postalCode}, {addr.country}
-          </p>
-        ))}
-      </div>
-
-      <div>
-        <h2 className="font-semibold">Contacts</h2>
-        {patient.contact?.map((contact, idx) => (
-          <div key={idx} className="mb-2">
-            <p>
-              <strong>Relationship:</strong> {contact.relationship?.[0]?.text || "Unknown"}
-            </p>
-            <p>
-              <strong>Name:</strong> {contact.name?.given?.join(" ")}
-            </p>
-            <p>
-              <strong>Phone:</strong> {contact.telecom?.[0]?.value}
-            </p>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="w-4 h-4" />
+                Last updated: {new Date(patient.meta.lastUpdated).toLocaleString()}
+              </div>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {patient.resourceType}
+            </Badge>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div>
-        <h2 className="font-semibold">General Practitioner</h2>
-        {patient.generalPractitioner?.map((gp, idx) => (
-          <p key={idx}>
-            {gp.display} (NPI: {gp.identifier?.value})
-          </p>
-        ))}
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="space-y-8">
+            {/* Patient Header */}
+            <PatientHeader patient={patient} />
+
+            {/* Main Content Grid */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <PatientIdentifiers identifiers={patient.identifier} />
+                <ContactInformation telecom={patient.telecom} />
+                <DemographicDetails patient={patient} />
+              </div>
+
+              <div className="space-y-6">
+                <AddressInformation addresses={patient.address} />
+                <EmergencyContacts contacts={patient.contact} />
+                <GeneralPractitioners practitioners={patient.generalPractitioner} />
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            {patient.communication && patient.communication.length > 0 && (
+              <Card className="shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold">Communication Preferences</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    {patient.communication.map((comm, idx) => (
+                      <Badge key={idx} variant="outline" className="text-sm">
+                        {comm.language?.text || 'Language preference'}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error: any) {
+    return <Error_ message={error.meessage} code={error.code} />
+  }
 }
 

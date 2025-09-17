@@ -19,7 +19,7 @@ export interface SearchParams {
   family: string
   birthdate: string
   gender: string
-  identifier: string
+  identifier: { type: string, value: string }
   phone: string
   email: string
   active: string
@@ -30,7 +30,7 @@ const initialSearchParams: SearchParams = {
   family: "",
   birthdate: "",
   gender: "",
-  identifier: "",
+  identifier: { type: "", value: "" },
   phone: "",
   email: "",
   active: "true",
@@ -76,8 +76,41 @@ export function usePatientSearch() {
   const searchPatients = useCallback(
     (params: SearchParams) => {
       const filteredParams: Record<string, string> = {}
+
       Object.entries(params).forEach(([key, value]) => {
-        if (value.trim() !== "") {
+        if (!value || (typeof value === "string" && value.trim() === "")) {
+          return
+        }
+
+        if (key === "identifier" && typeof value === "object") {
+          // Expecting { type, identifierValue }
+          const { type, value: identifierValue } = value as {
+            type: string
+            value: string
+          }
+
+          if (identifierValue.trim() !== "") {
+            let system = ""
+            switch (type) {
+              case "MRN":
+                system =
+                  "http://www.hl7.org/fhir/v2/0203/index.html#v2-0203-MR"
+                break
+              case "PMS":
+                system = "PMS"
+                break
+              case "SSN":
+                system = "http://hl7.org/fhir/sid/us-ssn"
+                break
+            }
+
+            const token = `${system}|${identifierValue.trim()}`
+            filteredParams.identifier = encodeURIComponent(token)
+          }
+          return
+        }
+
+        if (typeof value === "string") {
           filteredParams[key] = value.trim()
         }
       })
@@ -102,7 +135,12 @@ export function usePatientSearch() {
         setLoading(true)
         setError(null)
 
-        const data = (await fetchEntityByPage("Patient", nextPage)) as FhirBundle
+        const res = await fetchEntityByPage("Patient", nextPage)
+        if (!res.success) {
+          throw res.error as ApiError
+        }
+
+        const data = res.data as FhirBundle;
 
         setPatients((prev) => [...prev, ...(data.entry || [])])
 

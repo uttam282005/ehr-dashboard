@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { updateEntity } from "@/actions/actions"
+import { PatientUpdateHandler } from "./PatientUpdateHandler"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -139,9 +139,12 @@ export function PatientUpdateForm({ patientId }: PatientUpdateFormProps) {
         },
       })
 
-      const res = await updateEntity("Patient", patientId, patientUpdate)
+      const res = await PatientUpdateHandler({
+        patientId,
+        patientUpdate,
+      })
 
-      if (!res.success) throw res;
+      if (!res.success) throw res.error;
 
       setMessage("Patient updated successfully!")
       setIsSuccess(true)
