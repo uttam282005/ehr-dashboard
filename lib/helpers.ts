@@ -20,7 +20,7 @@ export const apiRequest = async <T = any>(
 ): Promise<T> => {
   try {
     const redis = await getRedisClient();
-    const creds = await redis.hGetAll(`ehr`) as UserCreds;
+    const creds = await redis.hGetAll(`ehr${process.env.NODE_ENV}`) as UserCreds;
 
     if (!creds || !creds.apiKey || !creds.accessToken) {
       throw {

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     console.log(data);
     if (!resp.ok) return NextResponse.json(data, { status: resp.status });
 
-    await redis.hSet(`ehr`, {
+    await redis.hSet(`ehr${process.env.NODE_ENV}`, {
       apiKey: apiKey || "",
       accessToken: data.access_token || "",
       refreshToken: data.refresh_token || "",
