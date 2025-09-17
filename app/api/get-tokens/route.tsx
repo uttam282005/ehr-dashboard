@@ -26,7 +26,6 @@ export async function POST(req: Request) {
     const resp = await fetch(`${baseUrl}/${firmUrlPrefix}/ema/ws/oauth2/grant`, options);
 
     const data = await resp.json();
-    console.log(data);
     if (!resp.ok) return NextResponse.json(data, { status: resp.status });
 
     await redis.hSet(`ehr${process.env.NODE_ENV}`, {

@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Calendar, User, Stethoscope, FileText } from "lucide-react"
+import { appointmentTypes } from "@/lib/types/appointment"
 
-interface SearchParams {
+interface SearchParams
+ {
   status: string
   "appointment-type": string
   date: string
@@ -59,8 +61,8 @@ export function AppointmentSearchForm({
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
                   <SelectItem value="booked">Booked</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="arrived">Arrived</SelectItem>
                   <SelectItem value="fulfilled">Fulfilled</SelectItem>
@@ -74,14 +76,20 @@ export function AppointmentSearchForm({
                 <Stethoscope className="h-4 w-4" />
                 Appointment Type
               </Label>
-              <Input
+              <select
                 id="appointment-type"
                 value={searchParams["appointment-type"]}
                 onChange={(e) => handleInputChange("appointment-type", e.target.value)}
-                placeholder="Type or code"
-              />
+                className="w-full border p-2 rounded"
+              >
+                <option value="">Select an appointment type</option>
+                {appointmentTypes.map((type: any) => (
+                  <option key={type.code} value={type.code}>
+                    {type.display}
+                  </option>
+                ))}
+              </select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="date" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
