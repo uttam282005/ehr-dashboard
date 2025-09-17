@@ -93,8 +93,6 @@ Contributions are welcome. Please fork the repo and submit pull requests with cl
 
 ***
 
-This README template covers key project information to aid developers and users working with your Healthcare API Integration project.
-
 [1](https://github.com/microsoft/healthcare-apis-samples)
 [2](https://github.com/othneildrew/Best-README-Template)
 [3](https://docs.readme.com/main/docs/building-apis-from-scratch-with-the-api-designer)
