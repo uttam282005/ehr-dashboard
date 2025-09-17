@@ -1,5 +1,5 @@
-const baseUrl = process.env.MODMED_BASE_URL!;
-const firmUrlPrefix = process.env.FIRM_URL_PREFIX!;
+const baseUrl = "https://stage.ema-api.com/ema-dev/firm"
+const firmUrlPrefix = "entpmsandbox393"
 
 export {
   baseUrl,

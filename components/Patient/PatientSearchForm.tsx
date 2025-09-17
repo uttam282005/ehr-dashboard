@@ -58,7 +58,7 @@ export default function PatientSearchForm({
   // Local state for fast typing
   const [localParams, setLocalParams] = useState<SearchParams>(searchParams)
 
-  const handleChange = (field: keyof SearchParams, value: string) => {
+  const handleChange = (field: keyof SearchParams, value: any) => {
     setLocalParams((prev) => ({ ...prev, [field]: value }))
     debouncedParamsChange({ ...localParams, [field]: value })
   }
