@@ -4,7 +4,10 @@ import { fetchEntityById } from "@/actions/actions";
 export default async function PatientDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   console.log(id);
-  const patient: Patient | null = await fetchEntityById("Patient", id) as Patient | null;
+  const res = await fetchEntityById("Patient", id);
+  if (!res.success) throw res.error;
+
+  const patient: Patient = res.data as Patient;
   if (!patient) return <p>No patient found.</p>;
 
   const raceExtension = patient.extension?.find(ext => ext.url === "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race");

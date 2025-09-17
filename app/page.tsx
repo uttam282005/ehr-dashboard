@@ -1,14 +1,6 @@
-import { baseUrl, firmUrlPrefix } from "@/config";
-import { apiRequest } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function Home() {
-
-    const url = `${baseUrl}/${firmUrlPrefix}/ema/fhir/v2/ValueSet/appointment-type`
-    const data = await apiRequest(url, "GET");
-
-    console.log(data.compose.include);
-
 
   return (
     <div>
